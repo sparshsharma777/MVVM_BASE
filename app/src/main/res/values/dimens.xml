@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="dimen_80dp">80dp</dimen>
+    <dimen name="spacing_ideal">8dp</dimen>
     <dimen name="spacing_large">16dp</dimen>
     <dimen name="elevation">8dp</dimen>
     <dimen name="spacing_xx_large">24dp</dimen>
