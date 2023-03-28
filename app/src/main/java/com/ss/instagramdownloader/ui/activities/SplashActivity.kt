@@ -1,29 +1,32 @@
 package com.ss.instagramdownloader.ui.activities
 
-import android.annotation.SuppressLint
-import android.media.MediaParser
+import android.graphics.Bitmap
+import android.media.MediaDataSource
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.MediaController
 import android.widget.ProgressBar
 import android.widget.VideoView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.MediaMetadata
+import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.ui.StyledPlayerControlView
 import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
 import com.ss.instagramdownloader.R
+
 
 class SplashActivity : AppCompatActivity() {
 
@@ -31,11 +34,13 @@ class SplashActivity : AppCompatActivity() {
     lateinit var videoView: VideoView
     lateinit var progressBar: ProgressBar
     lateinit var ivPause: AppCompatImageView
+    lateinit var ivPlaceHolder: AppCompatImageView
     lateinit var exoPlayerView: StyledPlayerView
 
     private var playWhenReady = true
     private var currentItem = 0
     private var playbackPosition = 0L
+    private var presentationTimeUs = 0L
 
     private var player: ExoPlayer? = null
     private val playbackStateListener: Player.Listener = playbackStateListener()
@@ -54,6 +59,26 @@ class SplashActivity : AppCompatActivity() {
         progressBar=findViewById(R.id.progress_bar)
         ivPause=findViewById(R.id.ivPause)
         exoPlayerView=findViewById(R.id.exoPlayerView)
+        ivPlaceHolder=findViewById(R.id.ivVideoPlaceHolder)
+//        exoPlayerView.controllerHideOnTouch=false
+//        exoPlayerView.controllerAutoShow=true
+//        exoPlayerView.controllerShowTimeoutMs=10000
+
+
+        ivPause.setOnClickListener{
+            ivPause.visibility=View.GONE
+            ivPlaceHolder.visibility=View.GONE
+            exoPlayerView.visibility = View.VISIBLE
+            player?.play()
+
+
+        }
+        exoPlayerView.setControllerVisibilityListener(object : StyledPlayerView.ControllerVisibilityListener{
+            override fun onVisibilityChanged(visibility: Int) {
+
+            }
+
+        })
 
 
     }
@@ -62,21 +87,27 @@ class SplashActivity : AppCompatActivity() {
         val trackSelector = DefaultTrackSelector(this).apply {
             setParameters(buildUponParameters().setMaxVideoSizeSd())
         }
-
         player = ExoPlayer.Builder(this)
+            .setTrackSelector(trackSelector)
             .build()
             .also { exoPlayer ->
                 exoPlayerView.player = exoPlayer
-                val mediaItem = MediaItem.fromUri(url)
+               // val mediaItem = MediaItem.fromUri(url)
+                val mediaItem = MediaItem.Builder()
+                    .setUri(url)
+                    .setMimeType(MimeTypes.APPLICATION_MP4)
+                    .build()
                 exoPlayer.setMediaItem(mediaItem)
                 exoPlayer.playWhenReady = playWhenReady
-                exoPlayer.seekTo(currentItem, playbackPosition)
+                exoPlayer.seekTo(currentItem,playbackPosition)
                 exoPlayer.addListener(playbackStateListener)
                 exoPlayer.setVideoFrameMetadataListener { presentationTimeUs, releaseTimeNs, format, mediaFormat ->
                     Log.d("exo",presentationTimeUs.toString())
+                    this.presentationTimeUs=presentationTimeUs
 
 
                 }
+               // exoPlayer.setVideoFrameMetadataListener()
                 exoPlayer.prepare()
             }
     }
@@ -172,14 +203,53 @@ class SplashActivity : AppCompatActivity() {
 
 
     private fun releasePlayer() {
+        getVideoFrame()
         player?.let { exoPlayer ->
             playbackPosition = exoPlayer.currentPosition
             currentItem = exoPlayer.currentMediaItemIndex
-            playWhenReady = exoPlayer.playWhenReady
+            playWhenReady=false
+           // playWhenReady = exoPlayer.playWhenReady
             exoPlayer.removeListener(playbackStateListener)
+
+            exoPlayer.stop()
             exoPlayer.release()
         }
         player = null
+        ivPause.visibility=View.VISIBLE
+
+    }
+
+    fun getVideoFrame() {
+        var bitmap: Bitmap? = null
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(url,HashMap<String,String>())
+            bitmap = retriever.getFrameAtTime(presentationTimeUs)
+        } catch (ex: RuntimeException) {
+            ex.printStackTrace()
+        } finally {
+            try {
+                retriever.release()
+            } catch (ex: RuntimeException) {
+                ex.printStackTrace()
+            }
+        }
+
+        if(bitmap!=null) {
+            ivPlaceHolder.setImageBitmap(bitmap)
+            ivPlaceHolder.visibility = View.VISIBLE
+           // exoPlayerView.visibility = View.INVISIBLE
+
+
+        }
+        else {
+            ivPlaceHolder.visibility = View.GONE
+           // exoPlayerView.visibility = View.VISIBLE
+        }
+
+
+
+
     }
 
 
@@ -188,12 +258,29 @@ class SplashActivity : AppCompatActivity() {
             val stateString: String = when (playbackState) {
                 ExoPlayer.STATE_IDLE -> "ExoPlayer.STATE_IDLE      -"
                 ExoPlayer.STATE_BUFFERING -> "ExoPlayer.STATE_BUFFERING -"
-                ExoPlayer.STATE_READY -> "ExoPlayer.STATE_READY     -"
+                ExoPlayer.STATE_READY -> {
+//                    ivPlaceHolder.visibility=View.INVISIBLE
+//                    exoPlayerView.visibility = View.VISIBLE
+
+
+                    "ExoPlayer.STATE_READY     -"
+                }
+
                 ExoPlayer.STATE_ENDED -> "ExoPlayer.STATE_ENDED     -"
                 else -> "UNKNOWN_STATE             -"
             }
             Log.d("exo", "changed state to $stateString")
         }
+
+        override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
+        }
+
+        override fun onPlayerErrorChanged(error: PlaybackException?) {
+            super.onPlayerErrorChanged(error)
+        }
     }
 
 }
+
+

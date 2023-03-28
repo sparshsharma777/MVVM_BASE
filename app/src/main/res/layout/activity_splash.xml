@@ -43,14 +43,25 @@
             app:played_color="@color/purple_700"
             app:controller_layout_id="@layout/exo_playback_control_view"
             app:unplayed_color="@color/white"
-            android:keepScreenOn="true"
-
-            >
+            app:animation_enabled="false"
+            app:surface_type="surface_view"
+            app:shutter_background_color="@android:color/transparent">
 
 
 
 
         </com.google.android.exoplayer2.ui.StyledPlayerView>
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ivVideoPlaceHolder"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:adjustViewBounds="true"
+            />
 
         <SeekBar
             android:visibility="gone"
@@ -100,7 +111,6 @@
             android:layout_height="wrap_content" />
 
         <androidx.appcompat.widget.AppCompatImageView
-
             android:src="@android:drawable/ic_media_play"
             android:id="@+id/ivPause"
             android:visibility="gone"

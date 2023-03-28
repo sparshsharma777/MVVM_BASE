@@ -24,16 +24,19 @@
             tools:ignore="ContentDescription" />
 
         <ImageButton
+
             android:id="@id/exo_rew"
             style="@style/ExoMediaButton.Rewind"
             tools:ignore="ContentDescription" />
 
         <ImageButton
+
             android:id="@id/exo_repeat_toggle"
             style="@style/ExoMediaButton"
             tools:ignore="ContentDescription" />
 
         <ImageButton
+
             android:id="@id/exo_play"
             style="@style/ExoMediaButton.Play"
             tools:ignore="ContentDescription" />
