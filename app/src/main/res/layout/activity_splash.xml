@@ -4,18 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/rootVie"
     tools:context=".ui.activities.SplashActivity"
     android:background="@color/main_background"
     >
-
-
-
-
-
     <androidx.constraintlayout.widget.ConstraintLayout
-
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
@@ -33,35 +28,33 @@
 
         <com.google.android.exoplayer2.ui.StyledPlayerView
             android:id="@+id/exoPlayerView"
+            android:visibility="gone"
+            tools:visibility="visible"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:show_shuffle_button="false"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:played_color="@color/purple_700"
             app:controller_layout_id="@layout/exo_playback_control_view"
             app:unplayed_color="@color/white"
-            app:animation_enabled="false"
-            app:surface_type="surface_view"
-            app:shutter_background_color="@android:color/transparent">
+            android:animateLayoutChanges="true"
+            app:shutter_background_color="@android:color/transparent"
 
-
-
-
+            >
         </com.google.android.exoplayer2.ui.StyledPlayerView>
+
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivVideoPlaceHolder"
-            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:adjustViewBounds="true"
+            android:visibility="gone"
+            app:layout_constrainedHeight="true"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            android:adjustViewBounds="true"
-            />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
 
         <SeekBar
             android:visibility="gone"
@@ -117,9 +110,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/ivVideoPlaceHolder"
 
             />
 

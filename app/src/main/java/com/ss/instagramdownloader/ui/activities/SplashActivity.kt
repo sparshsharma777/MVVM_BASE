@@ -8,6 +8,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
+import android.view.translation.TranslationManager
 import android.widget.MediaController
 import android.widget.ProgressBar
 import android.widget.VideoView
@@ -16,6 +18,7 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.transition.TransitionManager
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.MediaMetadata
@@ -36,6 +39,7 @@ class SplashActivity : AppCompatActivity() {
     lateinit var ivPause: AppCompatImageView
     lateinit var ivPlaceHolder: AppCompatImageView
     lateinit var exoPlayerView: StyledPlayerView
+    lateinit var viewRoot: ViewGroup
 
     private var playWhenReady = true
     private var currentItem = 0
@@ -60,6 +64,7 @@ class SplashActivity : AppCompatActivity() {
         ivPause=findViewById(R.id.ivPause)
         exoPlayerView=findViewById(R.id.exoPlayerView)
         ivPlaceHolder=findViewById(R.id.ivVideoPlaceHolder)
+        viewRoot=findViewById(R.id.rootVie)
 //        exoPlayerView.controllerHideOnTouch=false
 //        exoPlayerView.controllerAutoShow=true
 //        exoPlayerView.controllerShowTimeoutMs=10000
@@ -67,7 +72,7 @@ class SplashActivity : AppCompatActivity() {
 
         ivPause.setOnClickListener{
             ivPause.visibility=View.GONE
-            ivPlaceHolder.visibility=View.GONE
+            ivPlaceHolder.visibility=View.INVISIBLE
             exoPlayerView.visibility = View.VISIBLE
             player?.play()
 
@@ -166,6 +171,9 @@ class SplashActivity : AppCompatActivity() {
         super.onStart()
         if (Util.SDK_INT > 23) {
             initializePlayer()
+//            if (exoPlayerView != null) {
+//                exoPlayerView.onResume()
+//            }
         }
     }
 
@@ -174,6 +182,9 @@ class SplashActivity : AppCompatActivity() {
        // hideSystemUi()
         if ((Util.SDK_INT <= 23 || player == null)) {
             initializePlayer()
+//            if (exoPlayerView != null) {
+//                exoPlayerView.onResume()
+//            }
         }
     }
 
@@ -188,6 +199,10 @@ class SplashActivity : AppCompatActivity() {
     public override fun onPause() {
         super.onPause()
         if (Util.SDK_INT <= 23) {
+
+            if (exoPlayerView != null) {
+                exoPlayerView.onPause()
+            }
             releasePlayer()
         }
     }
@@ -196,6 +211,10 @@ class SplashActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (Util.SDK_INT > 23) {
+
+            if (exoPlayerView != null) {
+                exoPlayerView.onPause()
+            }
             releasePlayer()
         }
 
@@ -203,19 +222,20 @@ class SplashActivity : AppCompatActivity() {
 
 
     private fun releasePlayer() {
-        getVideoFrame()
+
         player?.let { exoPlayer ->
             playbackPosition = exoPlayer.currentPosition
             currentItem = exoPlayer.currentMediaItemIndex
             playWhenReady=false
-           // playWhenReady = exoPlayer.playWhenReady
+            //playWhenReady = exoPlayer.playWhenReady
             exoPlayer.removeListener(playbackStateListener)
-
             exoPlayer.stop()
             exoPlayer.release()
         }
         player = null
         ivPause.visibility=View.VISIBLE
+        exoPlayerView.visibility = View.GONE
+        getVideoFrame()
 
     }
 
@@ -238,13 +258,13 @@ class SplashActivity : AppCompatActivity() {
         if(bitmap!=null) {
             ivPlaceHolder.setImageBitmap(bitmap)
             ivPlaceHolder.visibility = View.VISIBLE
-           // exoPlayerView.visibility = View.INVISIBLE
+            exoPlayerView.visibility = View.GONE
 
 
         }
         else {
-            ivPlaceHolder.visibility = View.GONE
-           // exoPlayerView.visibility = View.VISIBLE
+             ivPlaceHolder.visibility = View.GONE
+             exoPlayerView.visibility = View.GONE
         }
 
 
@@ -259,8 +279,12 @@ class SplashActivity : AppCompatActivity() {
                 ExoPlayer.STATE_IDLE -> "ExoPlayer.STATE_IDLE      -"
                 ExoPlayer.STATE_BUFFERING -> "ExoPlayer.STATE_BUFFERING -"
                 ExoPlayer.STATE_READY -> {
-//                    ivPlaceHolder.visibility=View.INVISIBLE
+                   //ivPlaceHolder.visibility=View.INVISIBLE
 //                    exoPlayerView.visibility = View.VISIBLE
+                    TransitionManager.beginDelayedTransition(viewRoot)
+                  // ivPlaceHolder.visibility = View.INVISIBLE
+                    exoPlayerView.visibility = View.VISIBLE
+
 
 
                     "ExoPlayer.STATE_READY     -"
